@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UISP Cleanup Tool</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #23273a;
+    --border: #2d3148;
+    --text: #e2e4ed;
+    --text2: #8b8fa7;
+    --accent: #6c72cb;
+    --accent-hover: #7f85e0;
+    --danger: #e5484d;
+    --danger-hover: #f16a6e;
+    --success: #30a46c;
+    --warn: #f5a623;
+    --radius: 8px;
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mono: 'Cascadia Code', 'Consolas', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+
+  header .version {
+    font-size: 12px;
+    color: var(--text2);
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .mode-tabs {
+    display: flex;
+    gap: 0;
+    margin-left: 24px;
+  }
+
+  .mode-tabs .mode-tab {
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    background: transparent;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font);
+  }
+
+  .mode-tabs .mode-tab:first-child { border-radius: 6px 0 0 6px; }
+  .mode-tabs .mode-tab:last-child { border-radius: 0 6px 6px 0; border-left: none; }
+
+  .mode-tabs .mode-tab.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  .steps {
+    display: flex;
+    gap: 0;
+    margin-left: auto;
+  }
+
+  .steps .step {
+    padding: 6px 18px;
+    font-size: 13px;
+    color: var(--text2);
+    border-bottom: 2px solid transparent;
+    cursor: default;
+    transition: all 0.15s;
+  }
+
+  .steps .step.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .steps .step.done { color: var(--success); }
+
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px;
+  }
+
+  .panel {
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+  .form-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    align-items: flex-end;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .form-group.narrow { flex: 0 0 160px; }
+
+  label {
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="password"],
+  select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font);
+    outline: none;
+    transition: border 0.15s;
+  }
+
+  input:focus, select:focus { border-color: var(--accent); }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .checkbox-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+  }
+
+  .checkbox-row label {
+    text-transform: none;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  button {
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: var(--danger-hover); }
+  .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+
+  .status-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .status-badge.offline { background: rgba(229,72,77,0.15); color: var(--danger); }
+  .status-badge.online { background: rgba(48,164,108,0.15); color: var(--success); }
+  .status-badge.unknown { background: rgba(139,143,167,0.15); color: var(--text2); }
+  .status-badge.empty { background: rgba(245,166,35,0.15); color: var(--warn); }
+
+  .msg {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+
+  .msg.ok { background: rgba(48,164,108,0.12); color: var(--success); }
+  .msg.err { background: rgba(229,72,77,0.12); color: var(--danger); }
+  .msg.warn { background: rgba(245,166,35,0.12); color: var(--warn); }
+
+  .table-wrap { overflow-x: auto; margin-top: 12px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    text-align: left;
+    padding: 10px 12px;
+    color: var(--text2);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:hover { background: var(--surface2); }
+
+  td {
+    padding: 8px 12px;
+    white-space: nowrap;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  td input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent);
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .toolbar .count {
+    font-size: 13px;
+    color: var(--text2);
+    margin-left: auto;
+  }
+
+  .progress-bar-outer {
+    width: 100%;
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+
+  .progress-bar-inner {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width 0.2s;
+  }
+
+  .progress-bar-inner.has-errors {
+    background: linear-gradient(90deg, var(--accent), var(--danger));
+  }
+
+  .exec-log {
+    max-height: 350px;
+    overflow-y: auto;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .exec-log .ok { color: var(--success); }
+  .exec-log .fail { color: var(--danger); }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .summary-card {
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+  }
+
+  .summary-card .num { font-size: 28px; font-weight: 700; }
+
+  .summary-card .lbl {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+
+  .confirm-input {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .confirm-input input { width: 260px; }
+
+  .hidden { display: none !important; }
+
+  .search-input {
+    flex: 1;
+    min-width: 200px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>UISP Cleanup Tool</h1>
+  <span class="version">v1.5</span>
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="modeDevices">Devices</button>
+    <button class="mode-tab" id="modeSites">Sites</button>
+  </div>
+  <div class="steps" id="deviceSteps">
+    <div class="step active" data-step="0">1 Connect</div>
+    <div class="step" data-step="1">2 Rules</div>
+    <div class="step" data-step="2">3 Review</div>
+    <div class="step" data-step="3">4 Execute</div>
+  </div>
+  <div class="steps hidden" id="siteSteps">
+    <div class="step active" data-step="s0">1 Connect</div>
+    <div class="step" data-step="s1">2 Review</div>
+    <div class="step" data-step="s2">3 Execute</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ==================== DEVICES WORKFLOW ==================== -->
+
+  <!-- STEP 0: CONNECT -->
+  <div class="panel active" id="panelConnect">
+    <div class="card">
+      <h2>Connect to UISP</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>UISP Base URL</label>
+          <input type="text" id="inpHost" placeholder="https://uisp.example.com" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>API Token</label>
+          <input type="password" id="inpToken" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="chkTls" />
+        <label for="chkTls">Skip TLS certificate verification (self-signed certs)</label>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button class="btn-primary" id="btnTest">Test Connection</button>
+      </div>
+      <div id="connectMsg" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- STEP 1: RULES -->
+  <div class="panel" id="panelRules">
+    <div class="card">
+      <h2>Define Offline Rules</h2>
+      <div class="form-row">
+        <div class="form-group narrow">
+          <label>Offline for &ge; N days</label>
+          <input type="number" id="inpDays" value="90" min="1" max="3650" />
+        </div>
+        <div class="form-group narrow">
+          <label>Status equals</label>
+          <select id="selStatus">
+            <option value="__offline__">Any offline state</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group narrow">
+          <label>Site</label>
+          <select id="selSite"><option value="">All sites</option></select>
+        </div>
+        <div class="form-group narrow">
+          <label>Role</label>
+          <select id="selRole"><option value="">All roles</option></select>
+        </div>
+        <div class="form-group narrow">
+          <label>Model contains</label>
+          <input type="text" id="inpModel" placeholder="" />
+        </div>
+        <div class="form-group narrow">
+          <label>Name contains</label>
+          <input type="text" id="inpNameFilter" placeholder="" />
+        </div>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button class="btn-ghost" id="btnBackConnect">Back</button>
+        <button class="btn-primary" id="btnApplyRules">Find Candidates</button>
+      </div>
+    </div>
+    <div id="rulesMsg" class="hidden"></div>
+  </div>
+
+  <!-- STEP 2: REVIEW -->
+  <div class="panel" id="panelReview">
+    <div class="card">
+      <h2>Review Candidates</h2>
+      <div class="toolbar">
+        <button class="btn-ghost" id="btnSelectAll">Select All</button>
+        <button class="btn-ghost" id="btnSelectNone">Select None</button>
+        <button class="btn-ghost" id="btnInvert">Invert</button>
+        <button class="btn-ghost" id="btnExportCsv">Export CSV</button>
+        <input type="text" class="search-input" id="inpSearch" placeholder="Search table..." style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;" />
+        <span class="count" id="reviewCount"></span>
+      </div>
+      <div class="table-wrap" style="max-height: 500px; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px;"><input type="checkbox" id="chkAll" /></th>
+              <th>Name</th>
+              <th>Model</th>
+              <th>Site</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Last Seen</th>
+              <th>IP</th>
+              <th>ID</th>
+            </tr>
+          </thead>
+          <tbody id="tblBody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button class="btn-ghost" id="btnBackRules">Back to Rules</button>
+        <button class="btn-danger" id="btnProceedDelete">Delete Selected</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: EXECUTE -->
+  <div class="panel" id="panelExec">
+    <div class="card">
+      <h2>Confirm &amp; Execute Deletion</h2>
+      <div id="execPreDelete">
+        <p id="execWarn" style="margin-bottom:8px;"></p>
+        <div class="summary-grid" id="execPreSummary"></div>
+        <div class="confirm-input">
+          <input type="text" id="inpConfirm" placeholder="" />
+          <button class="btn-danger" id="btnConfirmDelete" disabled>Delete Now</button>
+        </div>
+        <p style="margin-top:8px;font-size:12px;color:var(--text2);">Type the confirmation phrase exactly to enable the button.</p>
+        <button class="btn-ghost" id="btnBackReview" style="margin-top:12px;">Back to Review</button>
+      </div>
+      <div id="execProgress" class="hidden">
+        <div class="progress-bar-outer"><div class="progress-bar-inner" id="progBar" style="width:0%"></div></div>
+        <p id="progText" style="font-size:13px;color:var(--text2);margin-bottom:12px;"></p>
+        <div class="exec-log" id="execLog"></div>
+        <div id="execDone" class="hidden" style="margin-top:16px;">
+          <div class="summary-grid" id="execSummary"></div>
+          <button class="btn-ghost" id="btnNewRun" style="margin-top:16px;">Start New Cleanup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SITES WORKFLOW ==================== -->
+
+  <!-- SITES STEP 0: CONNECT (shared credentials) -->
+  <div class="panel" id="panelSiteConnect">
+    <div class="card">
+      <h2>Connect to UISP (Sites)</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>UISP Base URL</label>
+          <input type="text" id="sInpHost" placeholder="https://uisp.example.com" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>API Token</label>
+          <input type="password" id="sInpToken" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="sChkTls" />
+        <label for="sChkTls">Skip TLS certificate verification (self-signed certs)</label>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button class="btn-primary" id="sBtnLoad">Load Empty Sites</button>
+      </div>
+      <div id="sConnMsg" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- SITES STEP 1: REVIEW EMPTY SITES -->
+  <div class="panel" id="panelSiteReview">
+    <div class="card">
+      <h2>Empty Sites (0 Devices Assigned)</h2>
+      <div class="toolbar">
+        <button class="btn-ghost" id="sBtnSelectAll">Select All</button>
+        <button class="btn-ghost" id="sBtnSelectNone">Select None</button>
+        <button class="btn-ghost" id="sBtnInvert">Invert</button>
+        <button class="btn-ghost" id="sBtnExportCsv">Export CSV</button>
+        <input type="text" class="search-input" id="sInpSearch" placeholder="Search sites..." style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;" />
+        <span class="count" id="sReviewCount"></span>
+      </div>
+      <div class="table-wrap" style="max-height: 500px; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px;"><input type="checkbox" id="sChkAll" /></th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Address</th>
+              <th>Devices</th>
+              <th>ID</th>
+            </tr>
+          </thead>
+          <tbody id="sTblBody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button class="btn-ghost" id="sBtnBackConnect">Back</button>
+        <button class="btn-danger" id="sBtnProceedDelete">Delete Selected Sites</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SITES STEP 2: EXECUTE -->
+  <div class="panel" id="panelSiteExec">
+    <div class="card">
+      <h2>Confirm &amp; Execute Site Deletion</h2>
+      <div id="sExecPreDelete">
+        <p id="sExecWarn" style="margin-bottom:8px;"></p>
+        <div class="summary-grid" id="sExecPreSummary"></div>
+        <div class="confirm-input">
+          <input type="text" id="sInpConfirm" placeholder="" />
+          <button class="btn-danger" id="sBtnConfirmDelete" disabled>Delete Now</button>
+        </div>
+        <p style="margin-top:8px;font-size:12px;color:var(--text2);">Type the confirmation phrase exactly to enable the button.</p>
+        <button class="btn-ghost" id="sBtnBackReview" style="margin-top:12px;">Back to Review</button>
+      </div>
+      <div id="sExecProgress" class="hidden">
+        <div class="progress-bar-outer"><div class="progress-bar-inner" id="sProgBar" style="width:0%"></div></div>
+        <p id="sProgText" style="font-size:13px;color:var(--text2);margin-bottom:12px;"></p>
+        <div class="exec-log" id="sExecLog"></div>
+        <div id="sExecDone" class="hidden" style="margin-top:16px;">
+          <div class="summary-grid" id="sExecSummary"></div>
+          <button class="btn-ghost" id="sBtnNewRun" style="margin-top:16px;">Start New Site Cleanup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+(function () {
+  // =========================================================================
+  // Shared
+  // =========================================================================
+  let currentMode = "devices";
+
+  const devicePanels = ["panelConnect", "panelRules", "panelReview", "panelExec"];
+  const sitePanels = ["panelSiteConnect", "panelSiteReview", "panelSiteExec"];
+
+  function hideAll() {
+    [...devicePanels, ...sitePanels].forEach((id) => {
+      document.getElementById(id).classList.remove("active");
+    });
+  }
+
+  function showPanel(id) {
+    hideAll();
+    document.getElementById(id).classList.add("active");
+  }
+
+  function esc(s) {
+    const d = document.createElement("div");
+    d.textContent = s || "";
+    return d.innerHTML;
+  }
+
+  function showMsg(el, text, type) {
+    el.className = `msg ${type}`;
+    el.textContent = text;
+    el.classList.remove("hidden");
+  }
+
+  // =========================================================================
+  // Mode switching (Devices / Sites)
+  // =========================================================================
+  const modeDevBtn = document.getElementById("modeDevices");
+  const modeSitBtn = document.getElementById("modeSites");
+  const deviceStepsEl = document.getElementById("deviceSteps");
+  const siteStepsEl = document.getElementById("siteSteps");
+
+  function syncCredentials(from) {
+    if (from === "devices") {
+      document.getElementById("sInpHost").value = document.getElementById("inpHost").value;
+      document.getElementById("sInpToken").value = document.getElementById("inpToken").value;
+      document.getElementById("sChkTls").checked = document.getElementById("chkTls").checked;
+    } else {
+      document.getElementById("inpHost").value = document.getElementById("sInpHost").value;
+      document.getElementById("inpToken").value = document.getElementById("sInpToken").value;
+      document.getElementById("chkTls").checked = document.getElementById("sChkTls").checked;
+    }
+  }
+
+  function switchMode(mode) {
+    currentMode = mode;
+    modeDevBtn.classList.toggle("active", mode === "devices");
+    modeSitBtn.classList.toggle("active", mode === "sites");
+    deviceStepsEl.classList.toggle("hidden", mode !== "devices");
+    siteStepsEl.classList.toggle("hidden", mode !== "sites");
+
+    if (mode === "devices") {
+      syncCredentials("sites");
+      showPanel("panelConnect");
+      updateDeviceSteps(0);
+    } else {
+      syncCredentials("devices");
+      showPanel("panelSiteConnect");
+      updateSiteSteps(0);
+    }
+  }
+
+  modeDevBtn.addEventListener("click", () => switchMode("devices"));
+  modeSitBtn.addEventListener("click", () => switchMode("sites"));
+
+  // =========================================================================
+  // DEVICES WORKFLOW
+  // =========================================================================
+  let conn = { baseUrl: "", token: "", skipTls: false };
+  let allDevices = [];
+  let candidates = [];
+  let selected = new Set();
+
+  const OFFLINE_STATES = new Set([
+    "offline", "unreachable", "disconnected", "inactive", "unknown",
+  ]);
+
+  function updateDeviceSteps(active) {
+    document.querySelectorAll("#deviceSteps .step").forEach((s, i) => {
+      s.classList.toggle("active", i === active);
+      s.classList.toggle("done", i < active);
+    });
+  }
+
+  function devGoTo(n) {
+    const map = [devicePanels[n]];
+    showPanel(devicePanels[n]);
+    updateDeviceSteps(n);
+  }
+
+  document.getElementById("btnTest").addEventListener("click", async () => {
+    const baseUrl = document.getElementById("inpHost").value.trim().replace(/\/+$/, "");
+    const token = document.getElementById("inpToken").value.trim();
+    const skipTls = document.getElementById("chkTls").checked;
+    const msgEl = document.getElementById("connectMsg");
+
+    if (!baseUrl || !token) {
+      showMsg(msgEl, "Please fill in both the URL and the API token.", "err");
+      return;
+    }
+
+    showMsg(msgEl, "Testing connection...", "warn");
+
+    try {
+      const res = await fetch("/api/connect/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ baseUrl, token, skipTls }),
+      });
+      const j = await res.json();
+      if (j.ok) {
+        conn = { baseUrl, token, skipTls };
+        showMsg(msgEl, "Connection successful. Loading devices...", "ok");
+        await loadDevices();
+      } else {
+        showMsg(msgEl, "Connection failed: " + (j.message || "Unknown error"), "err");
+      }
+    } catch (e) {
+      showMsg(msgEl, "Request error: " + e.message, "err");
+    }
+  });
+
+  async function loadDevices() {
+    const msgEl = document.getElementById("connectMsg");
+    try {
+      const res = await fetch("/api/devices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(conn),
+      });
+      const j = await res.json();
+      if (j.error || !j.ok) {
+        showMsg(msgEl, "Failed to load devices: " + (j.error || j.message), "err");
+        return;
+      }
+      allDevices = j.devices;
+      showMsg(msgEl, `Loaded ${allDevices.length} devices. Proceeding to rules...`, "ok");
+      populateFilters();
+      setTimeout(() => devGoTo(1), 600);
+    } catch (e) {
+      showMsg(msgEl, "Failed to load devices: " + e.message, "err");
+    }
+  }
+
+  function populateFilters() {
+    const statuses = new Set();
+    const sites = new Set();
+    const roles = new Set();
+
+    allDevices.forEach((d) => {
+      if (d.status) statuses.add(d.status);
+      if (d.site) sites.add(d.site);
+      if (d.role) roles.add(d.role);
+    });
+
+    const selStatus = document.getElementById("selStatus");
+    selStatus.innerHTML = '<option value="__offline__">Any offline state</option>';
+    [...statuses].sort().forEach((s) => {
+      const o = document.createElement("option"); o.value = s; o.textContent = s;
+      selStatus.appendChild(o);
+    });
+
+    const selSite = document.getElementById("selSite");
+    selSite.innerHTML = '<option value="">All sites</option>';
+    [...sites].sort().forEach((s) => {
+      const o = document.createElement("option"); o.value = s; o.textContent = s;
+      selSite.appendChild(o);
+    });
+
+    const selRole = document.getElementById("selRole");
+    selRole.innerHTML = '<option value="">All roles</option>';
+    [...roles].sort().forEach((s) => {
+      const o = document.createElement("option"); o.value = s; o.textContent = s;
+      selRole.appendChild(o);
+    });
+  }
+
+  document.getElementById("btnBackConnect").addEventListener("click", () => devGoTo(0));
+
+  document.getElementById("btnApplyRules").addEventListener("click", () => {
+    const days = parseInt(document.getElementById("inpDays").value, 10) || 90;
+    const statusVal = document.getElementById("selStatus").value;
+    const siteVal = document.getElementById("selSite").value;
+    const roleVal = document.getElementById("selRole").value;
+    const modelVal = document.getElementById("inpModel").value.trim().toLowerCase();
+    const nameVal = document.getElementById("inpNameFilter").value.trim().toLowerCase();
+    const cutoff = new Date(Date.now() - days * 86400000);
+
+    candidates = allDevices.filter((d) => {
+      const statusLower = (d.status || "").toLowerCase();
+      const isOffline = statusVal === "__offline__"
+        ? OFFLINE_STATES.has(statusLower) || statusLower === ""
+        : statusLower === statusVal.toLowerCase();
+      if (!isOffline) return false;
+      if (d.lastSeen) {
+        const ls = new Date(d.lastSeen);
+        if (isNaN(ls.getTime()) || ls >= cutoff) return false;
+      }
+      if (siteVal && d.site !== siteVal) return false;
+      if (roleVal && d.role !== roleVal) return false;
+      if (modelVal && !(d.model || "").toLowerCase().includes(modelVal)) return false;
+      if (nameVal && !(d.displayName || "").toLowerCase().includes(nameVal)) return false;
+      return true;
+    });
+
+    selected = new Set(candidates.map((d) => d.id));
+    renderDeviceTable();
+    devGoTo(2);
+  });
+
+  function renderDeviceTable(filter) {
+    const tbody = document.getElementById("tblBody");
+    tbody.innerHTML = "";
+    const search = (filter || "").toLowerCase();
+
+    candidates.forEach((d) => {
+      if (search && !(d.displayName + d.model + d.site + d.ip + d.id).toLowerCase().includes(search)) return;
+      const tr = document.createElement("tr");
+      const statusClass = OFFLINE_STATES.has((d.status || "").toLowerCase()) ? "offline"
+        : (d.status || "").toLowerCase() === "active" ? "online" : "unknown";
+      const lastSeenDisplay = d.lastSeen ? new Date(d.lastSeen).toLocaleString() : "Never";
+
+      tr.innerHTML = `
+        <td><input type="checkbox" data-id="${d.id}" ${selected.has(d.id) ? "checked" : ""} /></td>
+        <td title="${esc(d.displayName)}">${esc(d.displayName)}</td>
+        <td title="${esc(d.model)}">${esc(d.model)}</td>
+        <td title="${esc(d.site)}">${esc(d.site)}</td>
+        <td>${esc(d.role)}</td>
+        <td><span class="status-badge ${statusClass}">${esc(d.status || "unknown")}</span></td>
+        <td>${lastSeenDisplay}</td>
+        <td>${esc(d.ip)}</td>
+        <td style="font-family:var(--mono);font-size:11px;" title="${esc(d.id)}">${esc((d.id || "").substring(0, 12))}...</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+      cb.addEventListener("change", () => {
+        if (cb.checked) selected.add(cb.dataset.id);
+        else selected.delete(cb.dataset.id);
+        updateDeviceCount();
+      });
+    });
+    updateDeviceCount();
+  }
+
+  function updateDeviceCount() {
+    document.getElementById("reviewCount").textContent = `${selected.size} of ${candidates.length} selected`;
+    document.getElementById("chkAll").checked = selected.size === candidates.length && candidates.length > 0;
+  }
+
+  document.getElementById("inpSearch").addEventListener("input", (e) => renderDeviceTable(e.target.value));
+  document.getElementById("chkAll").addEventListener("change", (e) => {
+    if (e.target.checked) candidates.forEach((d) => selected.add(d.id));
+    else selected.clear();
+    renderDeviceTable(document.getElementById("inpSearch").value);
+  });
+  document.getElementById("btnSelectAll").addEventListener("click", () => { candidates.forEach((d) => selected.add(d.id)); renderDeviceTable(document.getElementById("inpSearch").value); });
+  document.getElementById("btnSelectNone").addEventListener("click", () => { selected.clear(); renderDeviceTable(document.getElementById("inpSearch").value); });
+  document.getElementById("btnInvert").addEventListener("click", () => { candidates.forEach((d) => { if (selected.has(d.id)) selected.delete(d.id); else selected.add(d.id); }); renderDeviceTable(document.getElementById("inpSearch").value); });
+  document.getElementById("btnExportCsv").addEventListener("click", () => {
+    const rows = [["Name", "Model", "Site", "Role", "Status", "LastSeen", "IP", "ID"]];
+    candidates.filter((d) => selected.has(d.id)).forEach((d) => { rows.push([d.displayName, d.model, d.site, d.role, d.status, d.lastSeen || "", d.ip, d.id]); });
+    const csv = rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `uisp-device-cleanup-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+  });
+
+  document.getElementById("btnBackRules").addEventListener("click", () => devGoTo(1));
+
+  document.getElementById("btnProceedDelete").addEventListener("click", () => {
+    if (selected.size === 0) return alert("No devices selected.");
+    setupDeviceExecPanel();
+    devGoTo(3);
+  });
+
+  function setupDeviceExecPanel() {
+    document.getElementById("execPreDelete").classList.remove("hidden");
+    document.getElementById("execProgress").classList.add("hidden");
+    document.getElementById("execDone").classList.add("hidden");
+    const n = selected.size;
+    const phrase = `DELETE ${n} DEVICES`;
+    document.getElementById("execWarn").innerHTML = `You are about to <strong>permanently delete ${n} device(s)</strong> from UISP. This cannot be undone.`;
+    document.getElementById("execPreSummary").innerHTML = `<div class="summary-card"><div class="num" style="color:var(--danger)">${n}</div><div class="lbl">Devices to delete</div></div>`;
+    const inp = document.getElementById("inpConfirm"); inp.value = ""; inp.placeholder = `Type: ${phrase}`;
+    const btn = document.getElementById("btnConfirmDelete"); btn.disabled = true;
+    inp.oninput = () => { btn.disabled = inp.value.trim() !== phrase; };
+    btn.onclick = () => executeDeviceDelete();
+  }
+
+  async function executeDeviceDelete() {
+    document.getElementById("execPreDelete").classList.add("hidden");
+    document.getElementById("execProgress").classList.remove("hidden");
+    const ids = [...selected]; const total = ids.length; let success = 0; let failed = 0;
+    const logEl = document.getElementById("execLog"); logEl.innerHTML = "";
+    try {
+      const res = await fetch("/api/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...conn, deviceIds: ids }) });
+      const reader = res.body.getReader(); const decoder = new TextDecoder(); let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read(); if (done) break;
+        buffer += decoder.decode(value, { stream: true }); const lines = buffer.split("\n\n"); buffer = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = JSON.parse(line.slice(6));
+          if (data.done) { success = data.success; failed = data.failed; break; }
+          if (data.ok) success++; else failed++;
+          const device = candidates.find((d) => d.id === data.id); const name = device ? device.displayName : data.id;
+          const cls = data.ok ? "ok" : "fail"; const icon = data.ok ? "&#10003;" : "&#10007;";
+          logEl.innerHTML += `<div class="${cls}">${icon} ${esc(name)} (${data.status})</div>`; logEl.scrollTop = logEl.scrollHeight;
+          const pct = Math.round(((success + failed) / total) * 100);
+          document.getElementById("progBar").style.width = pct + "%";
+          if (failed > 0) document.getElementById("progBar").classList.add("has-errors");
+          document.getElementById("progText").textContent = `${success + failed} / ${total}  |  ${success} ok, ${failed} failed`;
+        }
+      }
+    } catch (e) { logEl.innerHTML += `<div class="fail">Stream error: ${esc(e.message)}</div>`; }
+    document.getElementById("progBar").style.width = "100%";
+    document.getElementById("progText").textContent = `Done. ${success} succeeded, ${failed} failed out of ${total}.`;
+    document.getElementById("execDone").classList.remove("hidden");
+    document.getElementById("execSummary").innerHTML = `
+      <div class="summary-card"><div class="num">${total}</div><div class="lbl">Total</div></div>
+      <div class="summary-card"><div class="num" style="color:var(--success)">${success}</div><div class="lbl">Succeeded</div></div>
+      <div class="summary-card"><div class="num" style="color:var(--danger)">${failed}</div><div class="lbl">Failed</div></div>`;
+  }
+
+  document.getElementById("btnBackReview").addEventListener("click", () => devGoTo(2));
+  document.getElementById("btnNewRun").addEventListener("click", () => { allDevices = []; candidates = []; selected.clear(); devGoTo(0); });
+
+  // =========================================================================
+  // SITES WORKFLOW
+  // =========================================================================
+  let sConn = { baseUrl: "", token: "", skipTls: false };
+  let allSites = [];
+  let emptySites = [];
+  let sSelected = new Set();
+
+  function updateSiteSteps(active) {
+    document.querySelectorAll("#siteSteps .step").forEach((s, i) => {
+      s.classList.toggle("active", i === active);
+      s.classList.toggle("done", i < active);
+    });
+  }
+
+  function siteGoTo(n) {
+    showPanel(sitePanels[n]);
+    updateSiteSteps(n);
+  }
+
+  document.getElementById("sBtnLoad").addEventListener("click", async () => {
+    const baseUrl = document.getElementById("sInpHost").value.trim().replace(/\/+$/, "");
+    const token = document.getElementById("sInpToken").value.trim();
+    const skipTls = document.getElementById("sChkTls").checked;
+    const msgEl = document.getElementById("sConnMsg");
+
+    if (!baseUrl || !token) {
+      showMsg(msgEl, "Please fill in both the URL and the API token.", "err");
+      return;
+    }
+
+    sConn = { baseUrl, token, skipTls };
+    showMsg(msgEl, "Loading sites and devices...", "warn");
+
+    try {
+      const res = await fetch("/api/sites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sConn),
+      });
+      const j = await res.json();
+      if (!j.ok) {
+        showMsg(msgEl, "Failed: " + (j.message || j.error || "Unknown error"), "err");
+        return;
+      }
+      allSites = j.sites;
+      emptySites = allSites.filter((s) => s.isEmpty);
+      sSelected = new Set(emptySites.map((s) => s.id));
+
+      if (emptySites.length === 0) {
+        showMsg(msgEl, `Loaded ${allSites.length} sites. None are empty (all have at least 1 device).`, "ok");
+        return;
+      }
+
+      showMsg(msgEl, `Found ${emptySites.length} empty site(s) out of ${allSites.length} total. Proceeding to review...`, "ok");
+      setTimeout(() => siteGoTo(1), 600);
+    } catch (e) {
+      showMsg(msgEl, "Request error: " + e.message, "err");
+    }
+  });
+
+  function renderSiteTable(filter) {
+    const tbody = document.getElementById("sTblBody");
+    tbody.innerHTML = "";
+    const search = (filter || "").toLowerCase();
+
+    emptySites.forEach((s) => {
+      if (search && !(s.name + s.type + s.address + s.id).toLowerCase().includes(search)) return;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="checkbox" data-id="${s.id}" ${sSelected.has(s.id) ? "checked" : ""} /></td>
+        <td title="${esc(s.name)}">${esc(s.name)}</td>
+        <td>${esc(s.type)}</td>
+        <td><span class="status-badge ${s.status === "active" ? "online" : s.status ? "unknown" : "unknown"}">${esc(s.status || "unknown")}</span></td>
+        <td title="${esc(s.address)}">${esc(s.address)}</td>
+        <td><span class="status-badge empty">0</span></td>
+        <td style="font-family:var(--mono);font-size:11px;" title="${esc(s.id)}">${esc((s.id || "").substring(0, 12))}...</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+      cb.addEventListener("change", () => {
+        if (cb.checked) sSelected.add(cb.dataset.id);
+        else sSelected.delete(cb.dataset.id);
+        updateSiteCount();
+      });
+    });
+    updateSiteCount();
+  }
+
+  function updateSiteCount() {
+    document.getElementById("sReviewCount").textContent = `${sSelected.size} of ${emptySites.length} selected`;
+    document.getElementById("sChkAll").checked = sSelected.size === emptySites.length && emptySites.length > 0;
+  }
+
+  document.getElementById("sInpSearch").addEventListener("input", (e) => renderSiteTable(e.target.value));
+  document.getElementById("sChkAll").addEventListener("change", (e) => {
+    if (e.target.checked) emptySites.forEach((s) => sSelected.add(s.id));
+    else sSelected.clear();
+    renderSiteTable(document.getElementById("sInpSearch").value);
+  });
+  document.getElementById("sBtnSelectAll").addEventListener("click", () => { emptySites.forEach((s) => sSelected.add(s.id)); renderSiteTable(document.getElementById("sInpSearch").value); });
+  document.getElementById("sBtnSelectNone").addEventListener("click", () => { sSelected.clear(); renderSiteTable(document.getElementById("sInpSearch").value); });
+  document.getElementById("sBtnInvert").addEventListener("click", () => { emptySites.forEach((s) => { if (sSelected.has(s.id)) sSelected.delete(s.id); else sSelected.add(s.id); }); renderSiteTable(document.getElementById("sInpSearch").value); });
+  document.getElementById("sBtnExportCsv").addEventListener("click", () => {
+    const rows = [["Name", "Type", "Status", "Address", "Devices", "ID"]];
+    emptySites.filter((s) => sSelected.has(s.id)).forEach((s) => { rows.push([s.name, s.type, s.status, s.address, s.deviceCount, s.id]); });
+    const csv = rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `uisp-empty-sites-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+  });
+
+  document.getElementById("sBtnBackConnect").addEventListener("click", () => siteGoTo(0));
+
+  // Render site table when entering review
+  const origSiteGoTo = siteGoTo;
+  siteGoTo = function (n) {
+    origSiteGoTo(n);
+    if (n === 1) renderSiteTable();
+  };
+
+  document.getElementById("sBtnProceedDelete").addEventListener("click", () => {
+    if (sSelected.size === 0) return alert("No sites selected.");
+    setupSiteExecPanel();
+    siteGoTo(2);
+  });
+
+  function setupSiteExecPanel() {
+    document.getElementById("sExecPreDelete").classList.remove("hidden");
+    document.getElementById("sExecProgress").classList.add("hidden");
+    document.getElementById("sExecDone").classList.add("hidden");
+    const n = sSelected.size;
+    const phrase = `DELETE ${n} SITES`;
+    document.getElementById("sExecWarn").innerHTML = `You are about to <strong>permanently delete ${n} empty site(s)</strong> from UISP. This action is irreversible.`;
+    document.getElementById("sExecPreSummary").innerHTML = `<div class="summary-card"><div class="num" style="color:var(--danger)">${n}</div><div class="lbl">Sites to delete</div></div>`;
+    const inp = document.getElementById("sInpConfirm"); inp.value = ""; inp.placeholder = `Type: ${phrase}`;
+    const btn = document.getElementById("sBtnConfirmDelete"); btn.disabled = true;
+    inp.oninput = () => { btn.disabled = inp.value.trim() !== phrase; };
+    btn.onclick = () => executeSiteDelete();
+  }
+
+  async function executeSiteDelete() {
+    document.getElementById("sExecPreDelete").classList.add("hidden");
+    document.getElementById("sExecProgress").classList.remove("hidden");
+    const ids = [...sSelected]; const total = ids.length; let success = 0; let failed = 0;
+    const logEl = document.getElementById("sExecLog"); logEl.innerHTML = "";
+    try {
+      const res = await fetch("/api/sites/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...sConn, siteIds: ids }) });
+      const reader = res.body.getReader(); const decoder = new TextDecoder(); let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read(); if (done) break;
+        buffer += decoder.decode(value, { stream: true }); const lines = buffer.split("\n\n"); buffer = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = JSON.parse(line.slice(6));
+          if (data.done) { success = data.success; failed = data.failed; break; }
+          if (data.ok) success++; else failed++;
+          const site = emptySites.find((s) => s.id === data.id); const name = site ? site.name : data.id;
+          const cls = data.ok ? "ok" : "fail"; const icon = data.ok ? "&#10003;" : "&#10007;";
+          logEl.innerHTML += `<div class="${cls}">${icon} ${esc(name)} (${data.status})</div>`; logEl.scrollTop = logEl.scrollHeight;
+          const pct = Math.round(((success + failed) / total) * 100);
+          document.getElementById("sProgBar").style.width = pct + "%";
+          if (failed > 0) document.getElementById("sProgBar").classList.add("has-errors");
+          document.getElementById("sProgText").textContent = `${success + failed} / ${total}  |  ${success} ok, ${failed} failed`;
+        }
+      }
+    } catch (e) { logEl.innerHTML += `<div class="fail">Stream error: ${esc(e.message)}</div>`; }
+    document.getElementById("sProgBar").style.width = "100%";
+    document.getElementById("sProgText").textContent = `Done. ${success} succeeded, ${failed} failed out of ${total}.`;
+    document.getElementById("sExecDone").classList.remove("hidden");
+    document.getElementById("sExecSummary").innerHTML = `
+      <div class="summary-card"><div class="num">${total}</div><div class="lbl">Total</div></div>
+      <div class="summary-card"><div class="num" style="color:var(--success)">${success}</div><div class="lbl">Succeeded</div></div>
+      <div class="summary-card"><div class="num" style="color:var(--danger)">${failed}</div><div class="lbl">Failed</div></div>`;
+  }
+
+  document.getElementById("sBtnBackReview").addEventListener("click", () => siteGoTo(1));
+  document.getElementById("sBtnNewRun").addEventListener("click", () => { allSites = []; emptySites = []; sSelected.clear(); siteGoTo(0); });
+})();
+</script>
+</body>
+</html>

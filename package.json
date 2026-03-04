@@ -1,0 +1,12 @@
+{
+  "name": "uisp-device-cleanup",
+  "version": "1.0.0",
+  "description": "Local web GUI to bulk-remove old offline devices from UISP via the official NMS REST API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
